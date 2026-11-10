@@ -5,18 +5,22 @@ export function categoryLabel(c: Category): string {
 }
 
 const CATEGORY_COLORS: Record<Category, string> = {
-  IT_AI: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  IT_AI:
+    "bg-blue-50 text-blue-600 ring-1 ring-blue-500/20 dark:bg-blue-900/30 dark:text-blue-300",
   ECONOMY:
-    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+    "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-500/20 dark:bg-emerald-900/30 dark:text-emerald-300",
   SOCIETY:
-    "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+    "bg-amber-50 text-amber-600 ring-1 ring-amber-500/20 dark:bg-amber-900/30 dark:text-amber-300",
   INDUSTRY:
-    "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
-  POLICY: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
+    "bg-violet-50 text-violet-600 ring-1 ring-violet-500/20 dark:bg-violet-900/30 dark:text-violet-300",
+  POLICY:
+    "bg-rose-50 text-rose-600 ring-1 ring-rose-500/20 dark:bg-rose-900/30 dark:text-rose-300",
 };
 
 export function categoryColor(c: Category): string {
-  return CATEGORY_COLORS[c] ?? "bg-slate-100 text-slate-700";
+  return (
+    CATEGORY_COLORS[c] ?? "bg-slate-100 text-slate-700 ring-1 ring-slate-500/20"
+  );
 }
 
 export function formatDate(iso: string | null): string {
@@ -49,14 +53,20 @@ export function confidenceLabel(
     case "high":
       return {
         text: "신뢰도 높음",
-        className: "bg-emerald-100 text-emerald-700",
+        className:
+          "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-500/20 dark:bg-emerald-900/30 dark:text-emerald-300",
       };
     case "medium":
-      return { text: "신뢰도 보통", className: "bg-amber-100 text-amber-700" };
+      return {
+        text: "신뢰도 보통",
+        className:
+          "bg-amber-50 text-amber-600 ring-1 ring-amber-500/20 dark:bg-amber-900/30 dark:text-amber-300",
+      };
     default:
       return {
         text: "확인 필요",
-        className: "bg-rose-100 text-rose-700",
+        className:
+          "bg-slate-100 text-slate-600 ring-1 ring-slate-400/20 dark:bg-slate-800 dark:text-slate-300",
       };
   }
 }

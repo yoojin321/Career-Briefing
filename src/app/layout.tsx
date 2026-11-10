@@ -17,7 +17,7 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <body>
         <ThemeScript />
-        <div className="min-h-screen">{children}</div>
+        <div className="app-bg min-h-screen">{children}</div>
       </body>
     </html>
   );

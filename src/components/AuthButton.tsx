@@ -24,7 +24,7 @@ export function AuthButton() {
           setAuth({ ...auth, authenticated: false });
           router.refresh();
         }}
-        className="rounded-md px-3 py-1.5 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+        className="rounded-lg px-3 py-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800"
       >
         로그아웃
       </button>
@@ -34,7 +34,7 @@ export function AuthButton() {
   return (
     <Link
       href="/login"
-      className="rounded-md bg-brand px-3 py-1.5 font-medium text-white transition hover:bg-brand-fg"
+      className="rounded-lg bg-brand px-3.5 py-1.5 font-medium text-white shadow-sm transition hover:bg-brand-fg"
     >
       로그인
     </Link>

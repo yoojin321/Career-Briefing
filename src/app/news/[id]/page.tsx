@@ -93,35 +93,40 @@ export default function NewsDetailPage({
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <main className="mx-auto max-w-3xl px-4 pb-16 pt-6">
         <Link
           href="/"
-          className="mb-6 inline-block text-sm text-slate-500 hover:text-brand"
+          className="mb-5 inline-flex items-center gap-1 text-sm font-medium text-slate-500 transition hover:text-brand"
         >
           ← 목록으로
         </Link>
 
         {loading && <DetailSkeleton />}
         {!loading && error && (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 p-8 text-center text-rose-700 dark:border-rose-900 dark:bg-rose-950/40">
+          <div className="card border-rose-200 bg-rose-50/60 p-8 text-center text-rose-700 dark:border-rose-900 dark:bg-rose-950/30">
             {error}
           </div>
         )}
         {!loading && article && (
-          <article>
-            <ArticleHeader article={article} />
-            <ArticleState articleId={article.id} />
-            <hr className="my-6 border-slate-200 dark:border-slate-800" />
+          <article className="animate-fade-in-up">
+            <div className="card p-6 sm:p-7">
+              <ArticleHeader article={article} />
+              <div className="mt-5">
+                <ArticleState articleId={article.id} />
+              </div>
+            </div>
 
-            <AnalysisSection
-              analysis={analysis}
-              hasBody={article.hasBody}
-              analyzeState={analyzeState}
-              analyzeError={analyzeError}
-              hasCompleted={!!hasCompleted}
-              authed={auth?.authenticated ?? false}
-              onAnalyze={runAnalyze}
-            />
+            <div className="mt-6">
+              <AnalysisSection
+                analysis={analysis}
+                hasBody={article.hasBody}
+                analyzeState={analyzeState}
+                analyzeError={analyzeError}
+                hasCompleted={!!hasCompleted}
+                authed={auth?.authenticated ?? false}
+                onAnalyze={runAnalyze}
+              />
+            </div>
 
             <SourceFooter article={article} />
           </article>
@@ -133,19 +138,25 @@ export default function NewsDetailPage({
 
 function ArticleHeader({ article }: { article: Article }) {
   return (
-    <header className="mb-4">
+    <header>
       <span
-        className={`mb-3 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${categoryColor(
+        className={`mb-3 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${categoryColor(
           article.category,
         )}`}
       >
         {categoryLabel(article.category)}
       </span>
-      <h1 className="text-2xl font-bold leading-snug">{article.title}</h1>
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
-        <span>출처: {article.sourceName ?? "미상"}</span>
-        <span>발행: {formatDateTime(article.publishedAt)}</span>
-        <span>수집: {formatDateTime(article.collectedAt)}</span>
+      <h1 className="text-[22px] font-extrabold leading-snug tracking-tight sm:text-2xl">
+        {article.title}
+      </h1>
+      <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-slate-500 dark:text-slate-400">
+        <span className="font-medium text-slate-600 dark:text-slate-300">
+          {article.sourceName ?? "출처 미상"}
+        </span>
+        <span className="text-slate-300 dark:text-slate-600">·</span>
+        <span>발행 {formatDateTime(article.publishedAt)}</span>
+        <span className="text-slate-300 dark:text-slate-600">·</span>
+        <span>수집 {formatDateTime(article.collectedAt)}</span>
       </div>
     </header>
   );
@@ -155,24 +166,24 @@ function ArticleState({ articleId }: { articleId: string }) {
   const { bookmarked, learned, toggleBookmark, toggleLearned } =
     useArticleState(articleId);
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
       <button
         onClick={toggleBookmark}
-        className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
+        className={
           bookmarked
-            ? "border-brand bg-brand text-white"
-            : "border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
-        }`}
+            ? "btn bg-brand text-white hover:bg-brand-fg"
+            : "btn-ghost"
+        }
       >
         {bookmarked ? "★ 북마크됨" : "☆ 북마크"}
       </button>
       <button
         onClick={toggleLearned}
-        className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
+        className={
           learned
-            ? "border-emerald-500 bg-emerald-500 text-white"
-            : "border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
-        }`}
+            ? "btn bg-emerald-500 text-white hover:bg-emerald-600"
+            : "btn-ghost"
+        }
       >
         {learned ? "✓ 학습 완료" : "학습 완료로 표시"}
       </button>
@@ -200,22 +211,26 @@ function AnalysisSection({
   // 미설정 상태
   if (analysis?.status === "unconfigured") {
     return (
-      <StatusNote
-        title="AI 미설정"
-        body="LLM_API_KEY가 설정되지 않아 AI 분석을 생성할 수 없습니다. 임의 분석을 생성하지 않습니다."
-        tone="amber"
-      />
+      <div className="card p-6">
+        <p className="font-semibold text-amber-600 dark:text-amber-400">
+          AI 미설정
+        </p>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          LLM_API_KEY가 설정되지 않아 AI 분석을 생성할 수 없습니다. 임의 분석을
+          만들지 않습니다.
+        </p>
+      </div>
     );
   }
 
   // 분석 중
   if (analyzeState === "analyzing") {
     return (
-      <div className="mb-6 flex items-center gap-3 rounded-lg border border-brand/30 bg-brand/5 p-5">
-        <span className="h-5 w-5 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+      <div className="card flex items-center gap-4 p-6">
+        <span className="h-6 w-6 shrink-0 animate-spin rounded-full border-[3px] border-brand/30 border-t-brand" />
         <div>
-          <p className="font-semibold">AI가 기사를 분석하고 있습니다…</p>
-          <p className="text-sm text-slate-500">
+          <p className="font-semibold">AI가 기사를 분석하고 있습니다</p>
+          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
             보통 10~40초 걸립니다. 완료되면 아래에 표시됩니다.
           </p>
         </div>
@@ -226,32 +241,34 @@ function AnalysisSection({
   // 완료된 분석 표시
   if (hasCompleted && analysis?.content) {
     return (
-      <>
+      <div className="card p-6 sm:p-7">
         {!hasBody && (
-          <StatusNote
-            title="제한된 정보 기반 분석"
-            body="본문을 확보하지 못해 제목/공식 요약만으로 분석했습니다. 세부 사실은 원문 확인이 필요합니다."
-            tone="amber"
-          />
+          <p className="mb-5 flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+            <span className="mt-px">ℹ️</span>
+            <span>
+              제목과 공식 요약을 바탕으로 분석했습니다(원문 전문 미사용). 세부
+              사실은 원문에서 확인하세요.
+            </span>
+          </p>
         )}
         <AnalysisView content={analysis.content} />
-      </>
+      </div>
     );
   }
 
   // 미인증: 분석 실행 불가 — 로그인 안내 (목록/완료분석 열람은 가능)
   if (!authed) {
     return (
-      <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50 p-8 text-center dark:border-slate-800 dark:bg-slate-900">
-        <p className="text-lg font-semibold">AI 분석은 로그인 후 이용 가능합니다</p>
+      <div className="card p-10 text-center">
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-soft text-2xl dark:bg-brand/15">
+          🔒
+        </div>
+        <p className="text-base font-semibold">AI 분석은 로그인 후 이용 가능합니다</p>
         <p className="mx-auto mt-2 max-w-md text-sm text-slate-500 dark:text-slate-400">
-          개인용 서비스입니다. 뉴스 목록 탐색은 자유롭게 가능하며, AI 분석
-          실행은 로그인한 사용자만 할 수 있습니다.
+          개인용 서비스입니다. 뉴스 탐색은 자유롭게 가능하며, AI 분석 실행은
+          로그인한 사용자만 할 수 있습니다.
         </p>
-        <Link
-          href="/login"
-          className="mt-4 inline-block rounded-lg bg-brand px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-fg"
-        >
+        <Link href="/login" className="btn-primary mt-5 px-6">
           로그인하기
         </Link>
       </div>
@@ -262,65 +279,44 @@ function AnalysisSection({
   const prevFailed = analysis?.status === "failed";
 
   return (
-    <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50 p-8 text-center dark:border-slate-800 dark:bg-slate-900">
-      <p className="text-lg font-semibold">
-        {prevFailed ? "이전 분석이 실패했습니다" : "아직 분석하지 않은 기사입니다"}
+    <div className="card p-10 text-center">
+      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-soft text-2xl dark:bg-brand/15">
+        {prevFailed ? "⚠️" : "✨"}
+      </div>
+      <p className="text-base font-semibold">
+        {prevFailed ? "이전 분석이 실패했습니다" : "AI 분석 준비 완료"}
       </p>
       <p className="mx-auto mt-2 max-w-md text-sm text-slate-500 dark:text-slate-400">
         {prevFailed
           ? `마지막 시도에서 오류가 발생했습니다. ${analysis?.error ?? ""} 다시 시도할 수 있습니다.`
-          : "아래 버튼을 누르면 이 기사에 대해서만 AI 분석을 실행합니다. 목록 조회 단계에서는 AI를 호출하지 않습니다."}
+          : "버튼을 누르면 이 기사에 대해서만 AI 분석(요약·배경·핵심 개념·영향·취업 활용)을 실행합니다."}
       </p>
       {analyzeError && (
-        <p className="mx-auto mt-3 max-w-md rounded-lg bg-amber-50 p-2 text-sm text-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
+        <p className="mx-auto mt-3 max-w-md rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
           {analyzeError}
         </p>
       )}
-      <button
-        onClick={onAnalyze}
-        className="mt-4 rounded-lg bg-brand px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-fg"
-      >
+      <button onClick={onAnalyze} className="btn-primary mt-5 px-6">
         {prevFailed ? "다시 분석하기" : "AI 분석 실행"}
       </button>
     </div>
   );
 }
 
-function StatusNote({
-  title,
-  body,
-  tone = "slate",
-}: {
-  title: string;
-  body: string;
-  tone?: "slate" | "amber" | "rose";
-}) {
-  const colors = {
-    slate: "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300",
-    amber: "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200",
-    rose: "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300",
-  }[tone];
-  return (
-    <div className={`mb-6 rounded-lg border p-4 ${colors}`}>
-      <p className="font-semibold">{title}</p>
-      <p className="mt-1 text-sm">{body}</p>
-    </div>
-  );
-}
-
 function SourceFooter({ article }: { article: Article }) {
   return (
-    <footer className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-800">
-      <h2 className="mb-2 text-sm font-semibold text-slate-500">출처</h2>
-      <p className="text-sm text-slate-600 dark:text-slate-400">
-        {article.title} · {article.sourceName ?? "미상"} ·{" "}
-        {formatDate(article.publishedAt)}
-      </p>
+    <footer className="mt-6 card flex flex-col gap-3 p-6 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p className="eyebrow mb-1">출처</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          {article.sourceName ?? "출처 미상"} · {formatDate(article.publishedAt)}
+        </p>
+      </div>
       <a
         href={article.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-3 inline-block rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-fg"
+        className="btn-primary shrink-0"
       >
         원문 바로가기 ↗
       </a>
@@ -330,9 +326,10 @@ function SourceFooter({ article }: { article: Article }) {
 
 function DetailSkeleton() {
   return (
-    <div className="animate-pulse space-y-4">
+    <div className="card animate-pulse space-y-4 p-7">
       <div className="h-6 w-24 rounded-full bg-slate-200 dark:bg-slate-700" />
       <div className="h-8 w-3/4 rounded bg-slate-200 dark:bg-slate-700" />
+      <div className="h-4 w-1/2 rounded bg-slate-100 dark:bg-slate-800" />
       <div className="h-40 rounded bg-slate-100 dark:bg-slate-800" />
     </div>
   );

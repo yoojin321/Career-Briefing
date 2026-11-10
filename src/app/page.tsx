@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { Header } from "@/components/Header";
 import { ArticleCard, ArticleCardSkeleton } from "@/components/ArticleCard";
 import { StatusBanner } from "@/components/StatusBanner";
@@ -87,14 +86,18 @@ export default function HomePage() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <main className="mx-auto max-w-5xl px-4 pb-16 pt-8">
         {status && <StatusBanner status={status} />}
 
-        <div className="mb-5">
-          <h1 className="text-2xl font-bold">분야별 최신 뉴스</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            관심 분야를 선택해 최신순으로 탐색하고, 기사를 클릭하면 AI 분석을
-            실행합니다.
+        {/* Hero */}
+        <div className="mb-7">
+          <p className="eyebrow mb-2">DAILY BRIEFING</p>
+          <h1 className="text-[28px] font-extrabold tracking-tight text-slate-900 dark:text-white">
+            분야별 최신 뉴스
+          </h1>
+          <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+            관심 분야를 골라 최신순으로 탐색하고, 기사를 열어 AI 분석(요약·배경·
+            취업 활용)을 실행하세요. 목록 조회는 로그인 없이 가능합니다.
           </p>
         </div>
 
@@ -108,11 +111,7 @@ export default function HomePage() {
                 setQuery("");
                 setCategory(c);
               }}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                category === c && !activeQuery
-                  ? "bg-brand text-white"
-                  : "border border-slate-300 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-              }`}
+              className={category === c && !activeQuery ? "chip-active" : "chip-idle"}
             >
               {CATEGORY_LABELS[c]}
             </button>
@@ -120,18 +119,27 @@ export default function HomePage() {
         </div>
 
         {/* 검색 + 새로고침 */}
-        <div className="mb-5 flex flex-wrap items-center gap-2">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
           <form onSubmit={onSearch} className="flex flex-1 gap-2">
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="뉴스 검색 (제목·요약)"
-              className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800"
-            />
-            <button
-              type="submit"
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
-            >
+            <div className="relative flex-1">
+              <svg
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3-3" strokeLinecap="round" />
+              </svg>
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="뉴스 검색 (제목·요약)"
+                className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm outline-none transition focus:border-brand/50 focus:ring-2 focus:ring-brand/20 dark:border-slate-700 dark:bg-slate-900"
+              />
+            </div>
+            <button type="submit" className="btn-ghost">
               검색
             </button>
             {activeQuery && (
@@ -141,7 +149,7 @@ export default function HomePage() {
                   setQuery("");
                   setActiveQuery("");
                 }}
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-700"
+                className="btn-ghost"
               >
                 초기화
               </button>
@@ -150,18 +158,29 @@ export default function HomePage() {
           <button
             onClick={onManualRefresh}
             disabled={refreshing || !!activeQuery}
-            className="rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white transition hover:bg-brand-fg disabled:opacity-50"
+            className="btn-primary"
             title={activeQuery ? "검색 중에는 비활성화" : "최신 뉴스 수동 수집"}
           >
-            {refreshing ? "새로고침 중..." : "새로고침"}
+            {refreshing ? (
+              <>
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                수집 중
+              </>
+            ) : (
+              "새로고침"
+            )}
           </button>
         </div>
 
-        {refreshNote && (
-          <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
-            {refreshNote}
-          </p>
-        )}
+        {/* 결과 요약 줄 */}
+        <div className="mb-4 flex min-h-[18px] items-center justify-between text-xs text-slate-400 dark:text-slate-500">
+          <span>
+            {activeQuery
+              ? `"${activeQuery}" 검색 결과`
+              : `${CATEGORY_LABELS[category]} · 최신순`}
+          </span>
+          {refreshNote && <span>{refreshNote}</span>}
+        </div>
 
         {loading && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -172,14 +191,14 @@ export default function HomePage() {
         )}
 
         {!loading && error && (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 p-8 text-center dark:border-rose-900 dark:bg-rose-950/40">
+          <div className="card border-rose-200 bg-rose-50/60 p-10 text-center dark:border-rose-900 dark:bg-rose-950/30">
             <p className="font-semibold text-rose-700 dark:text-rose-300">
               뉴스를 불러오지 못했습니다
             </p>
-            <p className="mt-1 text-sm text-rose-600">{error}</p>
+            <p className="mt-1 text-sm text-rose-600 dark:text-rose-400">{error}</p>
             <button
               onClick={() => loadPage(category, 1, activeQuery, false)}
-              className="mt-4 rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white"
+              className="btn mt-4 bg-rose-600 text-white hover:bg-rose-700"
             >
               다시 시도
             </button>
@@ -187,12 +206,15 @@ export default function HomePage() {
         )}
 
         {!loading && !error && items.length === 0 && (
-          <div className="rounded-xl border border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
-            <p className="text-lg font-semibold">표시할 뉴스가 없습니다</p>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          <div className="card p-14 text-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl dark:bg-slate-800">
+              📰
+            </div>
+            <p className="text-base font-semibold">표시할 뉴스가 없습니다</p>
+            <p className="mx-auto mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
               {activeQuery
-                ? "검색 결과가 없습니다. 다른 키워드를 시도하세요."
-                : "아직 수집된 기사가 없습니다. 새로고침을 누르거나 관리자 페이지에서 수집하세요."}
+                ? "검색 결과가 없습니다. 다른 키워드를 시도해 보세요."
+                : "아직 수집된 기사가 없습니다. 위의 새로고침을 눌러 최신 뉴스를 가져오세요."}
             </p>
           </div>
         )}
@@ -201,54 +223,32 @@ export default function HomePage() {
           <>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {items.map((it) => (
-                <ArticleCard
-                  key={it.article.id}
-                  article={it.article}
-                  analysisStatus={it.analysisStatus}
-                />
+                <div key={it.article.id} className="animate-fade-in-up">
+                  <ArticleCard
+                    article={it.article}
+                    analysisStatus={it.analysisStatus}
+                  />
+                </div>
               ))}
             </div>
-            <div className="mt-8 flex justify-center">
+            <div className="mt-10 flex justify-center">
               {hasMore ? (
                 <button
                   onClick={() =>
                     loadPage(category, page + 1, activeQuery, false)
                   }
                   disabled={loadingMore}
-                  className="rounded-lg border border-slate-300 px-6 py-2.5 text-sm font-medium transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                  className="btn-ghost px-8"
                 >
                   {loadingMore ? "불러오는 중..." : "기사 더 보기"}
                 </button>
               ) : (
-                <p className="text-xs text-slate-400">마지막 기사입니다</p>
+                <p className="text-xs text-slate-400">— 마지막 기사입니다 —</p>
               )}
             </div>
           </>
         )}
-
-        <footer className="mt-12 flex flex-wrap gap-3 border-t border-slate-200 pt-6 text-sm dark:border-slate-800">
-          <FooterLink href="/saved">저장한 뉴스</FooterLink>
-          <FooterLink href="/archive">아카이브</FooterLink>
-          <FooterLink href="/settings">설정</FooterLink>
-        </footer>
       </main>
     </>
-  );
-}
-
-function FooterLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className="rounded-lg bg-slate-100 px-4 py-2 font-medium text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-    >
-      {children}
-    </Link>
   );
 }
