@@ -263,10 +263,10 @@ function AnalysisSection({
         <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-soft text-2xl dark:bg-brand/15">
           🔒
         </div>
-        <p className="text-base font-semibold">AI 분석은 로그인 후 이용 가능합니다</p>
+        <p className="text-base font-semibold">AI 분석은 로그인 후 볼 수 있습니다</p>
         <p className="mx-auto mt-2 max-w-md text-sm text-slate-500 dark:text-slate-400">
-          개인용 서비스입니다. 뉴스 탐색은 자유롭게 가능하며, AI 분석 실행은
-          로그인한 사용자만 할 수 있습니다.
+          개인용 서비스입니다. 뉴스 탐색은 자유롭게 가능하며, 저장된 AI 분석
+          열람과 분석 실행은 로그인한 사용자만 할 수 있습니다.
         </p>
         <Link href="/login" className="btn-primary mt-5 px-6">
           로그인하기

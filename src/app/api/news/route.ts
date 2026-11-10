@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { browseArticles } from "@/lib/services/browse";
 import { getRepository } from "@/lib/repo";
+import { isAuthenticated } from "@/lib/session";
 import { CATEGORIES, type Category } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -35,15 +36,19 @@ export async function GET(req: Request) {
     });
 
     const repo = getRepository();
-    // 각 기사의 AI 분석 상태만 조회 (BAZE 호출 아님)
+    const authed = isAuthenticated(req);
+    // 분석 상태 배지는 로그인한 사용자에게만 노출한다.
+    // 비로그인 시 분석 완료 여부도 드러내지 않는다(목록/검색은 공개 유지).
     const items = await Promise.all(
       result.items.map(async (article) => {
         let analysisStatus: string | null = null;
-        try {
-          const a = await repo.getAnalysis(article.id);
-          analysisStatus = a?.status ?? null;
-        } catch {
-          analysisStatus = null;
+        if (authed) {
+          try {
+            const a = await repo.getAnalysis(article.id);
+            analysisStatus = a?.status ?? null;
+          } catch {
+            analysisStatus = null;
+          }
         }
         return { article, analysisStatus };
       }),
