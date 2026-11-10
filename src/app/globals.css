@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: "Pretendard", system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+}
+
+.dark body {
+  @apply bg-slate-950 text-slate-100;
+}
+
+/* 사실/AI 해석 구분용 AI 블록 */
+.ai-block {
+  @apply border-l-4 border-brand/60 bg-brand/5 pl-4;
+}
+.dark .ai-block {
+  @apply border-brand/50 bg-brand/10;
+}

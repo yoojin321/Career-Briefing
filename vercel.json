@@ -1,0 +1,5 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "comment": "Cron 예약 실행은 현재 비활성화되어 있습니다. 필요 시 아래 crons 배열을 추가하고 /api/cron 과 CRON_SECRET 을 사용하세요.",
+  "crons": []
+}
