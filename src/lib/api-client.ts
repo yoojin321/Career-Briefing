@@ -105,21 +105,26 @@ export async function fetchArticle(
   return res.json();
 }
 
-/** 아카이브: 기사 발행 날짜 목록 */
-export async function fetchArchiveDates(): Promise<string[]> {
+/** 아카이브: 분석 완료 날짜 목록 (로그인 필요) */
+export async function fetchArchiveDates(): Promise<{
+  dates: string[];
+  unauthorized: boolean;
+}> {
   const res = await fetch("/api/archive", { cache: "no-store" });
+  if (res.status === 401) return { dates: [], unauthorized: true };
   if (!res.ok) throw new Error("아카이브 날짜 조회 실패");
   const json = (await res.json()) as { dates: string[] };
-  return json.dates;
+  return { dates: json.dates, unauthorized: false };
 }
 
-/** 아카이브: 특정 날짜의 기사 목록 */
+/** 아카이브: 특정 날짜의 분석 완료 기사 목록 (로그인 필요) */
 export async function fetchArchiveByDate(
   date: string,
 ): Promise<NewsListItem[]> {
   const res = await fetch(`/api/archive?date=${encodeURIComponent(date)}`, {
     cache: "no-store",
   });
+  if (res.status === 401) return [];
   if (!res.ok) throw new Error("아카이브 조회 실패");
   const json = (await res.json()) as { items: NewsListItem[] };
   return json.items;

@@ -67,4 +67,17 @@ export interface Repository {
   listArticleDates(limit?: number): Promise<string[]>;
   /** 특정 발행 날짜(YYYY-MM-DD, KST 기준)의 기사 목록 (발행 시각 내림차순) */
   listArticlesByDate(date: string): Promise<Article[]>;
+
+  /**
+   * AI 분석이 완료된(status=completed) 기사들의 "분석 날짜"(KST, YYYY-MM-DD) 목록.
+   * 학습 기록 아카이브용. 최신순.
+   */
+  listAnalyzedDates(limit?: number): Promise<string[]>;
+  /**
+   * 특정 분석 날짜(KST)의 분석 완료 기사 목록. 각 항목에 기사와 분석을 함께 반환.
+   * 분석 시각 내림차순.
+   */
+  listAnalyzedByDate(
+    date: string,
+  ): Promise<{ article: Article; analysis: Analysis }[]>;
 }

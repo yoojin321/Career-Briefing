@@ -319,6 +319,46 @@ export class SupabaseRepository implements Repository {
     if (error) throw new Error(`listArticlesByDate: ${error.message}`);
     return (data ?? []).map(mapArticle);
   }
+
+  async listAnalyzedDates(limit = 60): Promise<string[]> {
+    const { data, error } = await this.client
+      .from("analyses")
+      .select("created_at")
+      .eq("status", "completed")
+      .order("created_at", { ascending: false })
+      .limit(2000);
+    if (error) throw new Error(`listAnalyzedDates: ${error.message}`);
+    const dates = new Set<string>();
+    for (const r of data ?? []) {
+      const d = kstDate(r.created_at as string);
+      if (d) dates.add(d);
+    }
+    return [...dates].sort((a, b) => b.localeCompare(a)).slice(0, limit);
+  }
+
+  async listAnalyzedByDate(
+    date: string,
+  ): Promise<{ article: Article; analysis: Analysis }[]> {
+    const start = new Date(`${date}T00:00:00+09:00`).toISOString();
+    const endDate = new Date(`${date}T00:00:00+09:00`);
+    endDate.setDate(endDate.getDate() + 1);
+    const { data, error } = await this.client
+      .from("analyses")
+      .select("*, articles(*)")
+      .eq("status", "completed")
+      .gte("created_at", start)
+      .lt("created_at", endDate.toISOString())
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(`listAnalyzedByDate: ${error.message}`);
+    const out: { article: Article; analysis: Analysis }[] = [];
+    for (const r of data ?? []) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const joined = (r as any).articles;
+      if (!joined) continue;
+      out.push({ article: mapArticle(joined), analysis: mapAnalysis(r) });
+    }
+    return out;
+  }
 }
 
 /** UTC ISO 타임스탬프 → KST(Asia/Seoul) 기준 YYYY-MM-DD */

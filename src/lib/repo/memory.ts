@@ -213,6 +213,36 @@ class MemoryRepository implements Repository {
         return tb - ta;
       });
   }
+
+  async listAnalyzedDates(limit = 60): Promise<string[]> {
+    const dates = new Set<string>();
+    for (const a of this.analyses.values()) {
+      if (a.status !== "completed") continue;
+      const t = Date.parse(a.createdAt);
+      if (Number.isNaN(t)) continue;
+      dates.add(new Date(t + 9 * 36e5).toISOString().slice(0, 10));
+    }
+    return [...dates].sort((a, b) => b.localeCompare(a)).slice(0, limit);
+  }
+
+  async listAnalyzedByDate(
+    date: string,
+  ): Promise<{ article: Article; analysis: Analysis }[]> {
+    const start = new Date(`${date}T00:00:00+09:00`).getTime();
+    const end = start + 24 * 36e5;
+    const rows: { article: Article; analysis: Analysis }[] = [];
+    for (const a of this.analyses.values()) {
+      if (a.status !== "completed") continue;
+      const t = Date.parse(a.createdAt);
+      if (Number.isNaN(t) || t < start || t >= end) continue;
+      const article = this.articles.get(a.articleId);
+      if (article) rows.push({ article, analysis: a });
+    }
+    rows.sort(
+      (x, y) => Date.parse(y.analysis.createdAt) - Date.parse(x.analysis.createdAt),
+    );
+    return rows;
+  }
 }
 
 const g = globalThis as unknown as { __cbMemoryRepo?: MemoryRepository };
