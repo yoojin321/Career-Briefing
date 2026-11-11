@@ -29,12 +29,12 @@ export const JSON_SHAPE = `{
 export function buildSystemPrompt(): string {
   return [
     "당신은 취업 준비생을 돕는 한국어 뉴스 분석가입니다.",
-    "반드시 제공된 기사 정보(제목, 언론사, 발행일, 공식 요약)만을 근거로 분석하세요.",
+    "반드시 '제공된 기사 정보'(제목, 언론사, 발행일, 공식 요약, 그리고 제공된 경우 본문 발췌)만을 근거로 분석하세요.",
     "규칙:",
-    "1) 기사에 없는 수치, 인용문, 기관 입장, 구체적 사실을 지어내지 마세요.",
+    "1) 제공되지 않은 수치, 인용문, 기관 입장, 구체적 사실을 지어내지 마세요.",
     "2) 전망·예측은 반드시 '분석/예상'임을 드러내고 disclaimers에 기록하세요.",
     "3) 근거가 부족하면 confidence를 'needs_verification'으로 설정하고 추측을 최소화하세요.",
-    "4) 제목만 제공된 경우(본문 없음) 상세한 배경을 사실처럼 쓰지 말고 제한적으로만 작성하세요.",
+    "4) 본문 발췌가 제공되면 그 범위 내에서 충실히 분석하되, 발췌에 없는 사실을 보태지 마세요. 본문이 없고 제목/요약만 있으면 상세한 배경을 사실처럼 쓰지 말고 제한적으로만 작성하세요.",
     "5) 취업·면접과 실제 관련성이 낮은 기사라면 억지로 연결하지 말고 careerRelevance를 'low'로 설정하세요. 그래도 careerPoints/interviewQuestions 필드는 형식상 간결히 채우되 과장하지 마세요.",
     "6) 출력은 지정된 JSON 스키마를 '정확히' 따르는 JSON 하나만 반환하세요. 코드블록/설명 금지.",
     "",
@@ -46,21 +46,35 @@ export function buildSystemPrompt(): string {
 export function buildUserPrompt(
   article: Article,
   depth: AnalysisDepth,
+  bodyText?: string | null,
 ): string {
   const lines = [
     `카테고리: ${CATEGORY_LABELS[article.category]}`,
     `제목: ${article.title}`,
     `언론사/출처: ${article.sourceName ?? "미상"}`,
     `발행일: ${article.publishedAt ?? "미상"}`,
-    `본문 확보 여부: ${article.hasBody ? "일부 확보" : "없음(제목/메타만)"}`,
   ];
+
+  const hasBody = !!(bodyText && bodyText.trim().length > 0);
+  lines.push(`본문 발췌 제공: ${hasBody ? "있음" : "없음"}`);
+
   if (article.description) {
     lines.push(`공식 제공 요약: ${article.description}`);
-  } else {
+  }
+
+  if (hasBody) {
+    lines.push(
+      "",
+      "=== 기사 본문 발췌 (이 범위 내에서만 사실을 인용하세요) ===",
+      bodyText!.trim(),
+      "=== 본문 발췌 끝 ===",
+    );
+  } else if (!article.description) {
     lines.push(
       "공식 제공 요약: 없음 — 추가 사실을 추측하지 말고 confidence를 needs_verification으로 하세요.",
     );
   }
+
   lines.push(
     "",
     depth === "detailed"

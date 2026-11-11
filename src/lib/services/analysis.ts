@@ -1,5 +1,6 @@
 import { getRepository } from "@/lib/repo";
 import { analyzeArticle, toAnalysisRecord } from "@/lib/ai/analyze";
+import { fetchArticleBody } from "@/lib/sources/fetch-body";
 import type { Analysis, AnalysisDepth } from "@/lib/types";
 
 /** AI 분석 일일 요청 상한 (비용 보호). 환경변수로 조정 가능 */
@@ -111,7 +112,24 @@ export async function analyzeOnDemand(
     }
     await repo.incrementApiUsage(BAZE_PROVIDER, today(), 1);
 
-    const result = await analyzeArticle(article, depth);
+    // 대안 B: 분석 시점에만 본문을 일시적으로 가져와 LLM 입력으로만 사용(저장 안 함).
+    // robots 차단/실패 시 null → 기존 메타(제목/요약)만으로 폴백.
+    let bodyText: string | null = null;
+    try {
+      const body = await fetchArticleBody(article.url);
+      if (body.ok) bodyText = body.text;
+    } catch {
+      bodyText = null;
+    }
+
+    const result = await analyzeArticle(
+      article,
+      depth,
+      2,
+      undefined,
+      undefined,
+      bodyText,
+    );
     const record = toAnalysisRecord(article.id, depth, result);
     const saved = await repo.saveAnalysis(record);
     return { status: result.status === "completed" ? "completed" : result.status === "unconfigured" ? "unconfigured" : "failed", analysis: saved };

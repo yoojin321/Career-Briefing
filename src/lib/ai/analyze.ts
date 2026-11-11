@@ -87,6 +87,7 @@ export async function analyzeArticle(
   maxRetries = 2,
   chat: ChatFn = chatJson,
   cfgOverride?: import("@/lib/env").LlmConfig | null,
+  bodyText?: string | null,
 ): Promise<AnalyzeResult> {
   const cfg = cfgOverride !== undefined ? cfgOverride : getLlmConfig();
   if (!cfg) {
@@ -99,9 +100,13 @@ export async function analyzeArticle(
     };
   }
 
+  // 본문 발췌가 있으면 근거가 충분하므로 hasBody로 취급(과도한 confidence 강등 방지)
+  const effectiveHasBody =
+    article.hasBody || !!(bodyText && bodyText.trim().length > 0);
+
   const messages: ChatMessage[] = [
     { role: "system", content: buildSystemPrompt() },
-    { role: "user", content: buildUserPrompt(article, depth) },
+    { role: "user", content: buildUserPrompt(article, depth, bodyText) },
   ];
 
   let lastError = "";
@@ -126,7 +131,7 @@ export async function analyzeArticle(
         continue;
       }
 
-      const validated = validateAnalysis(result.content, article.hasBody);
+      const validated = validateAnalysis(result.content, effectiveHasBody);
       if (validated.ok) {
         return {
           status: "completed",
