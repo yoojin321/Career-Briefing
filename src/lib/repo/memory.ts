@@ -186,6 +186,33 @@ class MemoryRepository implements Repository {
   async setIngestMarker(category: string, at: string): Promise<void> {
     this.markers.set(category, at);
   }
+
+  async listArticleDates(limit = 30): Promise<string[]> {
+    const dates = new Set<string>();
+    for (const a of this.articles.values()) {
+      if (!a.publishedAt) continue;
+      const t = Date.parse(a.publishedAt);
+      if (Number.isNaN(t)) continue;
+      dates.add(new Date(t + 9 * 36e5).toISOString().slice(0, 10));
+    }
+    return [...dates].sort((a, b) => b.localeCompare(a)).slice(0, limit);
+  }
+
+  async listArticlesByDate(date: string): Promise<Article[]> {
+    const start = new Date(`${date}T00:00:00+09:00`).getTime();
+    const end = start + 24 * 36e5;
+    return [...this.articles.values()]
+      .filter((a) => {
+        if (!a.publishedAt) return false;
+        const t = Date.parse(a.publishedAt);
+        return !Number.isNaN(t) && t >= start && t < end;
+      })
+      .sort((a, b) => {
+        const ta = a.publishedAt ? Date.parse(a.publishedAt) : 0;
+        const tb = b.publishedAt ? Date.parse(b.publishedAt) : 0;
+        return tb - ta;
+      });
+  }
 }
 
 const g = globalThis as unknown as { __cbMemoryRepo?: MemoryRepository };

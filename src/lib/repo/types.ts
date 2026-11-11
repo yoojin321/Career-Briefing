@@ -62,4 +62,9 @@ export interface Repository {
   /** 카테고리별 마지막 수집 시각 (없으면 null) */
   getIngestMarker(category: string): Promise<string | null>;
   setIngestMarker(category: string, at: string): Promise<void>;
+
+  /** 기사 발행일(날짜, YYYY-MM-DD) 목록을 최신순으로 (아카이브용) */
+  listArticleDates(limit?: number): Promise<string[]>;
+  /** 특정 발행 날짜(YYYY-MM-DD, KST 기준)의 기사 목록 (발행 시각 내림차순) */
+  listArticlesByDate(date: string): Promise<Article[]>;
 }

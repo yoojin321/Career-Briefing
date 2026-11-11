@@ -287,6 +287,45 @@ export class SupabaseRepository implements Repository {
       .upsert({ category, last_ingested_at: at }, { onConflict: "category" });
     if (error) throw new Error(`setIngestMarker: ${error.message}`);
   }
+
+  async listArticleDates(limit = 30): Promise<string[]> {
+    // 최근 발행 기사들의 published_at을 가져와 KST 날짜로 그룹핑
+    const { data, error } = await this.client
+      .from("articles")
+      .select("published_at")
+      .not("published_at", "is", null)
+      .order("published_at", { ascending: false })
+      .limit(1000);
+    if (error) throw new Error(`listArticleDates: ${error.message}`);
+    const dates = new Set<string>();
+    for (const r of data ?? []) {
+      const d = kstDate(r.published_at as string);
+      if (d) dates.add(d);
+    }
+    return [...dates].sort((a, b) => b.localeCompare(a)).slice(0, limit);
+  }
+
+  async listArticlesByDate(date: string): Promise<Article[]> {
+    // date(KST)의 00:00~24:00을 UTC 범위로 변환해 조회
+    const start = new Date(`${date}T00:00:00+09:00`).toISOString();
+    const end = new Date(`${date}T00:00:00+09:00`);
+    end.setDate(end.getDate() + 1);
+    const { data, error } = await this.client
+      .from("articles")
+      .select()
+      .gte("published_at", start)
+      .lt("published_at", end.toISOString())
+      .order("published_at", { ascending: false });
+    if (error) throw new Error(`listArticlesByDate: ${error.message}`);
+    return (data ?? []).map(mapArticle);
+  }
+}
+
+/** UTC ISO 타임스탬프 → KST(Asia/Seoul) 기준 YYYY-MM-DD */
+function kstDate(iso: string): string | null {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return null;
+  return new Date(t + 9 * 36e5).toISOString().slice(0, 10);
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
