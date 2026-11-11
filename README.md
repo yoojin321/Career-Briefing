@@ -119,7 +119,7 @@ curl "http://localhost:3000/api/llm-check"      -H "x-admin-secret: $ADMIN_SECRE
 ## 화면 구성
 - `/` — 메인: 카테고리 탭 + 발행일 최신순 목록 + 더 보기 + 검색 + 새로고침
 - `/news/[id]` — 기사 상세 + 온디맨드 AI 분석(번호별 섹션, 취업/면접은 접기)
-- `/archive` — **발행일 기준 아카이브**: 날짜 칩으로 선택 → 해당 날짜 기사 목록. 카테고리/키워드/북마크 필터, 날짜·기사 로딩 상태 표시
+- `/archive` — **학습 아카이브(로그인 필요)**: AI 분석을 완료한 기사만, **분석한 날짜** 기준으로 모아 복습. 날짜는 드롭다운으로 선택, 카테고리/키워드/북마크 필터, 날짜·기사 로딩 상태 표시
 - `/saved` — 북마크·학습 완료(브라우저 기준)
 - `/settings` — 관심 카테고리·개수·전략·분석 깊이·다크모드(localStorage)
 - `/login` — 개인용 로그인 · `/admin` — 관리자 수동 수집/점검
@@ -149,7 +149,7 @@ src/
       news/                  # GET 목록(공개), [id]/analyze POST(로그인 필요)
       auth/                  # login / logout / me (세션)
       articles/[id]/           # 기사+분석 조회(분석은 로그인 시에만 반환)
-      archive/                 # 발행일 목록 / 날짜별 기사
+      archive/                 # 분석 완료 날짜 목록 / 날짜별 분석 기사 (로그인 필요)
       status/ naver-usage/ llm-check/
       ingest/ select/ analyze/ briefings/ cron/   # 관리자/레거시
   components/                # Header, ArticleCard, AnalysisView, AuthButton, StatusBanner, ThemeScript ...
@@ -176,7 +176,7 @@ supabase/schema.sql          # DB 스키마(테이블/인덱스/함수)
 - 온디맨드 AI 분석(요약·배경·핵심 개념·영향과 쟁점·취업/면접 활용), 완료 재사용, 동시 분석 잠금, 일일 상한
 - AI 응답 안정화(max_tokens·finish_reason 처리, 일시적 오류만 제한적 재시도, 진단 기록)
 - 개인용 로그인(HttpOnly 세션), 분석 실행·열람·완료 배지를 모두 인증 게이트로 보호(로그아웃 시 서버에서 차단)
-- Supabase 영속 저장(기사/분석 분리), 북마크·학습 완료(localStorage), 발행일 기준 아카이브(날짜별/카테고리/검색/북마크, 로딩 상태), 설정, 다크모드
+- Supabase 영속 저장(기사/분석 분리), 북마크·학습 완료(localStorage), 학습 아카이브(분석 완료 기사만·분석일 기준·로그인 필요·카테고리/검색/북마크·로딩 상태), 설정, 다크모드
 - 분석 시 원문 본문 일시 활용(대안 B): robots 준수, 미저장, 실패 시 메타 폴백
 - 관리자 수동 트리거(보안), 상태/미설정 안내, 네이버 호출량·LLM 모델 점검 API
 - 단위 테스트 / 타입체크 / 프로덕션 빌드
